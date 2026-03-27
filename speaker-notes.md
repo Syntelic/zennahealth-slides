@@ -68,6 +68,20 @@ The full library of 1,506 exercises is already in the database with videos store
 
 The entire computer vision pipeline is roughly 2,000 lines of Swift code. It requires iOS 17 or later for the 3D pose detection API, which covers all iPhones from the 2018 XR onwards.
 
-## Slide 9: Closing — Summary
+## Slide 9: Research Informing the Design
+
+The design decisions behind this system are grounded in peer-reviewed research. I'll highlight a few key ones.
+
+The clinical validation paper from PMC in 2024 showed that pose estimation achieves 5 to 10 degrees of mean error against goniometry for major joints, with correlation above 0.85. That's not precise enough for clinical measurement, but it's well within range for exercise guidance and wellness feedback — which is how this system is positioned under the FDA's General Wellness Policy.
+
+The Pose Trainer paper from 2020 found that angle-based heuristic rules generate better corrective feedback than trying to classify form errors using DTW. That's why the feedback system uses simple threshold rules — "if knee flexion is above 145 degrees at the bottom of a squat, show 'bend your knees more'" — rather than trying to do pattern matching on the full movement sequence.
+
+Two papers from Nature Scientific Reports in 2025 validated DTW-based scoring for physiotherapy. One showed that adding per-joint weights to DTW improves scoring accuracy by 12 to 18 percent, which is why each exercise configuration has configurable joint weights.
+
+The telerehab adherence review from the Journal of Physiotherapy is particularly relevant for the business case — camera-guided physiotherapy showed 85% patient adherence compared to 62% for paper-based programmes.
+
+And the One Euro Filter paper underpins the landmark smoothing — it's a well-established adaptive filter that reduces jitter when the patient is still but preserves responsiveness during fast movement.
+
+## Slide 10: Closing — Summary
 
 To summarise: Zenna Health has a production-grade, on-device computer vision system for rehabilitation exercise tracking. It uses Apple's Vision framework for true 3D pose detection, runs at 30 frames per second with under 14 milliseconds of latency, and the full Kemtai exercise library has been migrated to Zenna Health's own infrastructure. The system is designed for data-driven expansion — new exercises can be added without code changes.

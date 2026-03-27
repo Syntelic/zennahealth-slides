@@ -628,6 +628,63 @@ h3 { font-size: 1.1rem; font-weight: 700; color: var(--fg); }
 
 .callout strong { font-weight: 700; }
 
+/* ─── Research Table ─── */
+.research-table {
+  margin-top: 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  width: 100%;
+}
+
+.research-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.research-table th {
+  background: oklch(0.97 0.003 60);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.research-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  line-height: 1.4;
+}
+
+.research-table tr:last-child td { border-bottom: none; }
+
+.research-table td:first-child {
+  font-weight: 700;
+  color: var(--fg);
+  max-width: 200px;
+}
+
+.research-table td:nth-child(2) { color: var(--muted); }
+
+.research-table td:nth-child(3) {
+  color: var(--primary-dark);
+  font-weight: 400;
+}
+
+.research-table a {
+  color: var(--primary-dark);
+  text-decoration: none;
+  border-bottom: 1px solid var(--primary-light);
+}
+
+.research-table a:hover { border-bottom-color: var(--primary); }
+
 /* ─── Responsive ─── */
 @media (max-width: 1024px) {
   .slide { padding: 40px; }
@@ -659,7 +716,8 @@ h3 { font-size: 1.1rem; font-weight: 700; color: var(--fg); }
   <a href="#compare">6</a>
   <a href="#migration">7</a>
   <a href="#coverage">8</a>
-  <a href="#closing">9</a>
+  <a href="#research">9</a>
+  <a href="#closing">10</a>
 </nav>
 
 <!-- Zenna logo SVG (reused in slides) -->
@@ -1099,7 +1157,72 @@ h3 { font-size: 1.1rem; font-weight: 700; color: var(--fg); }
   </div>
 </section>
 
-<!-- ═══════════════════════ SLIDE 9: CLOSING ═══════════════════════ -->
+<!-- ═══════════════════════ SLIDE 9: RESEARCH ═══════════════════════ -->
+<section class="slide" id="research">
+  <div class="slide-glow"><div class="glow-orb glow-primary glow-2"></div></div>
+  <div class="slide-brand"><svg viewBox="51 40 113 38" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:var(--fg)"><path d="M69.646 46.5759L58.8796 58.3508H70.4742V62.7377H55.1569C53.4104 62.7377 52 61.3192 52 59.5808C52 58.7936 52.2952 58.031 52.8282 57.4488L63.5945 45.6739H52V41.287H67.3173C69.0638 41.287 70.4742 42.7056 70.4742 44.4439C70.4742 45.2311 70.179 45.9937 69.646 46.5759Z" fill="currentColor"/><path d="M79.9122 45.6739H90.7769V41.287H79.0348C76.1485 41.287 73.8115 43.6239 73.8115 46.5103V57.5062C73.8115 60.3926 76.1485 62.7295 79.0348 62.7295H90.7769V58.3426H79.9122C79.0512 58.3426 78.5018 57.7686 78.5018 56.8339V54.2099H90.4243V49.7902H78.5018V47.1663C78.5018 46.2397 79.043 45.6575 79.9122 45.6575V45.6739Z" fill="currentColor"/><path d="M100.42 42.6154L109.251 54.3165V41.287H114.179V59.4496C114.179 61.27 112.703 62.7377 110.891 62.7377C109.858 62.7377 108.882 62.2539 108.267 61.4258L99.4278 49.7V62.7295H94.4341V44.6079C94.4341 42.763 95.9264 41.2706 97.7714 41.2706C98.821 41.2706 99.8049 41.7626 100.436 42.599L100.42 42.6154Z" fill="currentColor"/><path d="M155.834 43.8207C155.064 41.902 153.948 41 151.8 41C149.652 41 148.536 41.8938 147.766 43.8535L140.205 62.7459H146.093L151.472 47.5681C151.538 47.4041 151.636 47.2811 151.792 47.2811C151.923 47.2811 152.046 47.3467 152.112 47.5681L157.458 62.7459H163.345L155.818 43.8207H155.834Z" fill="currentColor"/><path d="M123.953 42.6154L132.785 54.3165V41.287H137.713V59.4496C137.713 61.27 136.237 62.7377 134.425 62.7377C133.391 62.7377 132.416 62.2539 131.801 61.4258L122.961 49.7V62.7295H117.968V44.6079C117.968 42.763 119.46 41.2706 121.305 41.2706C122.354 41.2706 123.338 41.7626 123.97 42.599L123.953 42.6154Z" fill="currentColor"/></svg></div>
+  <div class="slide-inner" style="text-align: center;">
+    <div class="label fade-up">Evidence Base</div>
+    <h2 class="fade-up delay-1">Research Informing the Design</h2>
+    <p class="subtitle fade-up delay-2" style="max-width: 580px; margin: 0 auto;">Key papers that shaped the scoring model, rep counting, feedback system, and clinical positioning.</p>
+
+    <div class="research-table fade-up delay-3">
+      <table>
+        <thead>
+          <tr>
+            <th>Paper</th>
+            <th>Key Finding</th>
+            <th>How It Informed the Design</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11566680/" target="_blank">Clinical validation of pose estimation (PMC 2024)</a></td>
+            <td>5&ndash;10&deg; mean error for major joints vs goniometry, r &gt; 0.85</td>
+            <td>Confirms accuracy is sufficient for wellness feedback; positions system as exercise guidance, not clinical measurement</td>
+          </tr>
+          <tr>
+            <td><a href="https://arxiv.org/abs/2006.11718" target="_blank">Pose Trainer (arXiv 2020)</a></td>
+            <td>Angle-based heuristics generate better corrective feedback than DTW classification</td>
+            <td>Adopted rule-based threshold feedback over DTW for corrective cues</td>
+          </tr>
+          <tr>
+            <td><a href="https://www.nature.com/articles/s41598-025-29062-7" target="_blank">Real-time action scoring for PT (Nature 2025)</a></td>
+            <td>DTW + NCC achieves r = 0.87 correlation with expert human scoring</td>
+            <td>DTW used for per-rep alignment and sequence comparison</td>
+          </tr>
+          <tr>
+            <td><a href="https://www.nature.com/articles/s41598-025-02535-5" target="_blank">S-WFDTW fitness evaluation (Nature 2025)</a></td>
+            <td>Per-joint weighting in DTW improves scoring accuracy 12&ndash;18%</td>
+            <td>Exercise-specific joint weights in the scoring configuration</td>
+          </tr>
+          <tr>
+            <td><a href="https://arxiv.org/abs/2003.11246" target="_blank">FastDTW is slower than DTW (Wu &amp; Keogh 2020)</a></td>
+            <td>FastDTW is approximate and slower for short sequences</td>
+            <td>Uses constrained DTW with Sakoe-Chiba band instead of FastDTW</td>
+          </tr>
+          <tr>
+            <td><a href="https://www.sciencedirect.com/science/article/pii/S1836955324000560" target="_blank">Telerehab adherence review (J. Physiotherapy 2024)</a></td>
+            <td>Camera-guided PT: 85% adherence vs 62% paper-based</td>
+            <td>Validates the clinical value proposition of camera-based tracking</td>
+          </tr>
+          <tr>
+            <td><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12752325/" target="_blank">Stroke rehab with MediaPipe (PMC 2025)</a></td>
+            <td>MediaPipe validated for clinical rehabilitation settings</td>
+            <td>Confirms suitability of pose estimation for physiotherapy use</td>
+          </tr>
+          <tr>
+            <td><a href="https://hal.inria.fr/hal-00670496/document" target="_blank">One Euro Filter (CHI 2012)</a></td>
+            <td>Adaptive low-pass filter: low jitter at rest, low lag during movement</td>
+            <td>Applied to all landmark coordinates for signal smoothing</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ SLIDE 10: CLOSING ═══════════════════════ -->
 <section class="slide closing-slide" id="closing">
   <div class="closing-glow"></div>
   <div class="slide-inner" style="text-align: center; position: relative; z-index: 1;">
