@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zenna Health — Computer Vision Technology Overview</title>
+<style>
+/* ─── Reset & Base ─── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --primary: oklch(0.795 0.111 57.7);
+  --primary-light: oklch(0.9 0.06 57.7);
+  --primary-dark: oklch(0.6 0.12 57.7);
+  --green: oklch(0.762 0.190 153.6);
+  --green-light: oklch(0.92 0.06 153.6);
+  --red: oklch(0.637 0.237 25.331);
+  --red-light: oklch(0.93 0.04 25);
+  --amber: oklch(0.769 0.188 70.08);
+  --bg: oklch(0.985 0.002 60);
+  --fg: oklch(0.145 0 0);
+  --muted: oklch(0.556 0.01 60);
+  --card: oklch(1 0 0);
+  --border: oklch(0.915 0.008 60);
+  --radius: 10px;
+}
+
+@font-face {
+  font-family: 'Averta';
+  src: url('fonts/Averta-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Averta';
+  src: url('fonts/Averta-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-snap-type: y mandatory;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: 'Averta', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Slide Layout ─── */
+.slide {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 80px;
+  scroll-snap-align: start;
+  position: relative;
+  overflow: hidden;
+}
+
+.slide-inner {
+  max-width: 1100px;
+  width: 100%;
+  z-index: 1;
+}
+
+/* ─── Brand Badge ─── */
+.slide-brand {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  z-index: 3;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.slide-brand svg { height: 20px; width: auto; }
+
+/* ─── Background Glow ─── */
+.slide-glow {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.glow-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+}
+
+.glow-primary { background: var(--primary); }
+.glow-green { background: var(--green); }
+
+.glow-1 { width: 500px; height: 500px; top: -200px; right: -150px; opacity: 0.07; }
+.glow-2 { width: 350px; height: 350px; bottom: -150px; left: -100px; opacity: 0.05; }
+
+/* ─── Navigation ─── */
+nav {
+  position: fixed;
+  right: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+nav a {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: all 0.3s ease;
+  text-indent: -9999px;
+}
+
+nav a:hover { background: var(--primary-light); transform: scale(1.3); }
+nav a.active { background: var(--primary); transform: scale(1.5); }
+
+/* ─── Typography ─── */
+h1 {
+  font-size: clamp(2.2rem, 4.5vw, 3.8rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+}
+
+h2 {
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+}
+
+h3 { font-size: 1.1rem; font-weight: 700; color: var(--fg); }
+
+.subtitle {
+  font-size: clamp(1rem, 1.8vw, 1.25rem);
+  color: var(--muted);
+  line-height: 1.55;
+  margin-top: 14px;
+}
+
+.label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--primary-dark);
+  margin-bottom: 10px;
+}
+
+.highlight { color: var(--primary-dark); }
+
+/* ─── Animations ─── */
+.fade-up {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fade-up.visible { opacity: 1; transform: translateY(0); }
+.delay-1 { transition-delay: 0.1s; }
+.delay-2 { transition-delay: 0.2s; }
+.delay-3 { transition-delay: 0.3s; }
+.delay-4 { transition-delay: 0.4s; }
+.delay-5 { transition-delay: 0.5s; }
+
+/* ─── Cards ─── */
+.card-grid { display: grid; gap: 16px; margin-top: 32px; }
+.card-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.card-grid-2 { grid-template-columns: repeat(2, 1fr); }
+.card-grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 20px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+}
+
+.card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  font-size: 1.25rem;
+}
+
+.card h3 { margin-bottom: 6px; font-size: 1rem; }
+.card p { font-size: 0.88rem; color: var(--muted); line-height: 1.5; }
+
+/* ─── Stats Grid ─── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 36px;
+}
+
+.stat { text-align: center; }
+
+.stat-value {
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--fg);
+}
+
+.stat-label {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* ─── Pipeline Diagram ─── */
+.diagram {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  margin-top: 28px;
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.diagram-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.diagram-box-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  background: var(--primary-light);
+}
+
+.diagram-box-content h4 {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--fg);
+  margin-bottom: 1px;
+}
+
+.diagram-box-content span {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.diagram-box.core-box {
+  border: 2px solid var(--primary);
+  background: oklch(0.98 0.008 57.7);
+}
+
+.diagram-connector {
+  width: 2px;
+  height: 16px;
+  background: linear-gradient(to bottom, var(--border), transparent);
+  margin: 0 auto;
+}
+
+.diagram-tags {
+  display: flex;
+  gap: 5px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.diagram-tag {
+  font-size: 0.65rem;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  font-weight: 700;
+}
+
+/* ─── Two-Column Layout ─── */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: center;
+  margin-top: 32px;
+}
+
+/* ─── CSS Skeleton Figure ─── */
+.skeleton-figure {
+  position: relative;
+  width: 200px;
+  height: 340px;
+  margin: 0 auto;
+}
+
+.joint {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--primary);
+  z-index: 2;
+}
+
+.joint.measured {
+  width: 14px;
+  height: 14px;
+  background: var(--primary-dark);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+/* ─── Angle List ─── */
+.angle-list { display: grid; gap: 7px; }
+
+.angle-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--primary);
+  border-radius: 6px;
+}
+
+.angle-item-name {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--fg);
+  font-family: ui-monospace, 'SF Mono', monospace;
+}
+
+.angle-item-desc {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+/* ─── Gaussian Curve ─── */
+.gaussian-container {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.gaussian-curve {
+  position: relative;
+  width: 100%;
+  height: 140px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 1px;
+}
+
+.gaussian-bar {
+  flex: 1;
+  max-width: 6px;
+  border-radius: 2px 2px 0 0;
+}
+
+.gaussian-zone-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  padding: 0 8%;
+}
+
+.gaussian-zone-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.gz-green { color: oklch(0.55 0.19 153.6); }
+.gz-yellow { color: oklch(0.6 0.18 70); }
+.gz-red { color: oklch(0.55 0.22 25); }
+
+.gaussian-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 3px;
+  font-size: 0.65rem;
+  color: var(--muted);
+  padding: 0 2%;
+}
+
+/* ─── State Machine ─── */
+.state-machine {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-top: 28px;
+}
+
+.state-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  text-align: center;
+  min-width: 120px;
+}
+
+.state-box.active-state { border-color: var(--primary); background: var(--primary-light); }
+
+.state-box h4 {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.state-box .state-range {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 3px;
+  font-family: ui-monospace, 'SF Mono', monospace;
+}
+
+.state-arrow {
+  width: 32px;
+  text-align: center;
+  font-size: 1rem;
+  color: var(--muted);
+}
+
+.state-result {
+  padding: 14px 18px;
+  background: var(--green-light);
+  border: 1px solid var(--green);
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: oklch(0.4 0.15 153.6);
+}
+
+/* ─── Comparison Table ─── */
+.cmp-wrap {
+  margin-top: 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.cmp-table {
+  display: grid;
+  grid-template-columns: 1fr 150px 150px;
+  min-width: 560px;
+}
+
+.cmp-cell {
+  padding: 10px 14px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.82rem;
+  color: var(--fg);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cmp-cell:nth-child(3n) { border-right: none; }
+.cmp-table > .cmp-cell:nth-last-child(-n+3) { border-bottom: none; }
+
+.cmp-corner {
+  background: oklch(0.97 0.003 60);
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.cmp-head {
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  justify-content: center;
+  text-align: center;
+}
+
+.cmp-head-a { background: oklch(0.96 0.01 25); color: var(--muted); }
+.cmp-head-b { background: var(--primary); color: var(--fg); }
+
+.cmp-rowhead { font-weight: 400; background: oklch(0.98 0.002 60); }
+
+.cmp-a { justify-content: center; }
+.cmp-b { justify-content: center; background: oklch(0.99 0.005 57.7); }
+
+.tick { color: oklch(0.55 0.19 153.6); font-weight: 700; }
+.cross { color: var(--red); font-weight: 700; opacity: 0.6; }
+.partial { color: var(--amber); font-size: 0.78rem; }
+
+/* ─── Before / After Proof Grid ─── */
+.proof-grid { display: grid; gap: 8px; margin-top: 28px; }
+
+.proof-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.proof-cell {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px 12px 18px;
+  background: var(--card);
+  overflow: hidden;
+}
+
+.proof-cell::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  border-radius: 8px 0 0 8px;
+}
+
+.proof-cell.before { background: var(--red-light); }
+.proof-cell.before::before { background: var(--red); opacity: 0.4; }
+
+.proof-cell.after { background: var(--green-light); }
+.proof-cell.after::before { background: var(--green); }
+
+.proof-tag {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 3px;
+}
+
+.proof-tag.tag-before { color: var(--red); }
+.proof-tag.tag-after { color: oklch(0.5 0.15 153.6); }
+
+.proof-cell h4 { font-size: 0.82rem; font-weight: 700; margin-bottom: 1px; }
+.proof-cell p { font-size: 0.75rem; color: var(--muted); }
+
+.proof-row-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 6px 0 1px;
+}
+
+/* ─── Closing Slide ─── */
+.closing-slide { background: var(--fg); color: var(--bg); }
+.closing-slide h2 { color: var(--bg); }
+.closing-slide .subtitle { color: oklch(0.7 0.005 60); }
+.closing-slide .label { color: var(--primary); }
+
+.closing-glow {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.closing-glow::before {
+  content: '';
+  position: absolute;
+  width: 500px; height: 500px;
+  border-radius: 50%;
+  background: var(--primary);
+  filter: blur(160px);
+  opacity: 0.08;
+  top: -200px; right: -100px;
+}
+
+/* ─── Callout ─── */
+.callout {
+  margin-top: 18px;
+  padding: 12px 16px;
+  background: var(--primary-light);
+  border: 1px solid var(--primary);
+  border-radius: 6px;
+  font-size: 0.82rem;
+  color: var(--primary-dark);
+  font-weight: 400;
+}
+
+.callout strong { font-weight: 700; }
+
+/* ─── Responsive ─── */
+@media (max-width: 1024px) {
+  .slide { padding: 40px; }
+  .card-grid-3, .card-grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .two-col { grid-template-columns: 1fr; gap: 28px; }
+  nav { display: none; }
+  .proof-row { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .slide { padding: 28px 20px; }
+  .card-grid-3, .card-grid-2, .card-grid-4 { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: 1fr; gap: 16px; }
+  .state-machine { flex-direction: column; }
+  .state-arrow { transform: rotate(90deg); }
+  .cmp-wrap { overflow-x: auto; }
+}
+</style>
+</head>
+<body>
+
+<!-- ─── Navigation ─── -->
+<nav aria-label="Slide navigation">
+  <a href="#hero">1</a>
+  <a href="#pipeline">2</a>
+  <a href="#angles">3</a>
+  <a href="#scoring">4</a>
+  <a href="#tracking">5</a>
+  <a href="#compare">6</a>
+  <a href="#migration">7</a>
+  <a href="#coverage">8</a>
+  <a href="#closing">9</a>
+</nav>
+
+<!-- Zenna logo SVG (reused in slides) -->
+<template id="zenna-logo">
+  <svg viewBox="51 40 113 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M69.646 46.5759L58.8796 58.3508H70.4742V62.7377H55.1569C53.4104 62.7377 52 61.3192 52 59.5808C52 58.7936 52.2952 58.031 52.8282 57.4488L63.5945 45.6739H52V41.287H67.3173C69.0638 41.287 70.4742 42.7056 70.4742 44.4439C70.4742 45.2311 70.179 45.9937 69.646 46.5759Z" fill="currentColor"/>
+    <path d="M79.9122 45.6739H90.7769V41.287H79.0348C76.1485 41.287 73.8115 43.6239 73.8115 46.5103V57.5062C73.8115 60.3926 76.1485 62.7295 79.0348 62.7295H90.7769V58.3426H79.9122C79.0512 58.3426 78.5018 57.7686 78.5018 56.8339V54.2099H90.4243V49.7902H78.5018V47.1663C78.5018 46.2397 79.043 45.6575 79.9122 45.6575V45.6739Z" fill="currentColor"/>
+    <path d="M100.42 42.6154L109.251 54.3165V41.287H114.179V59.4496C114.179 61.27 112.703 62.7377 110.891 62.7377C109.858 62.7377 108.882 62.2539 108.267 61.4258L99.4278 49.7V62.7295H94.4341V44.6079C94.4341 42.763 95.9264 41.2706 97.7714 41.2706C98.821 41.2706 99.8049 41.7626 100.436 42.599L100.42 42.6154Z" fill="currentColor"/>
+    <path d="M155.834 43.8207C155.064 41.902 153.948 41 151.8 41C149.652 41 148.536 41.8938 147.766 43.8535L140.205 62.7459H146.093L151.472 47.5681C151.538 47.4041 151.636 47.2811 151.792 47.2811C151.923 47.2811 152.046 47.3467 152.112 47.5681L157.458 62.7459H163.345L155.818 43.8207H155.834Z" fill="currentColor"/>
+    <path d="M123.953 42.6154L132.785 54.3165V41.287H137.713V59.4496C137.713 61.27 136.237 62.7377 134.425 62.7377C133.391 62.7377 132.416 62.2539 131.801 61.4258L122.961 49.7V62.7295H117.968V44.6079C117.968 42.763 119.46 41.2706 121.305 41.2706C122.354 41.2706 123.338 41.7626 123.97 42.599L123.953 42.6154Z" fill="currentColor"/>
+    <path d="M78.7888 69.2484V72.1839C78.7888 72.5447 79.084 72.8399 79.4448 72.8399H82.7247C83.0855 72.8399 83.3807 72.5447 83.3807 72.1839V69.2484H84.5287V77.4236H83.3807V74.4881C83.3807 74.1273 83.0855 73.8321 82.7247 73.8321H79.4448C79.084 73.8321 78.7888 74.1273 78.7888 74.4881V77.4236H77.6408V69.2484H78.7888Z" fill="currentColor"/>
+    <path d="M90.5064 71.2081V72.7333H95.1311V73.8485H90.5064V75.3737C90.5064 75.9804 90.9246 76.4396 91.4986 76.4396H95.3279V77.44H91.2034C90.1374 77.44 89.3584 76.6446 89.3584 75.5704V71.0195C89.3584 69.9454 90.1374 69.15 91.2034 69.15H95.3279V70.1504H91.4986C90.9246 70.1504 90.5064 70.6014 90.5064 71.2163V71.2081Z" fill="currentColor"/>
+    <path d="M104.618 69.9618C104.438 69.4862 104.118 69.1418 103.446 69.1418C102.773 69.1418 102.454 69.4862 102.29 69.9618L99.4606 77.4318H100.756L103.282 70.585C103.339 70.4292 103.429 70.4128 103.454 70.4128C103.487 70.4128 103.577 70.421 103.626 70.585L106.168 77.4318H107.464L104.635 69.9618H104.618Z" fill="currentColor"/>
+    <path d="M112.662 69.2484V75.3572C112.662 75.964 113.08 76.415 113.654 76.415H117.377V77.4154H113.359C112.301 77.4154 111.514 76.62 111.514 75.5458V69.2402H112.662V69.2484Z" fill="currentColor"/>
+    <path d="M126.34 70.2488H123.486V77.4236H122.338V70.2488H119.493V69.2484H126.34V70.2488Z" fill="currentColor"/>
+    <path d="M131.973 69.2484V72.1839C131.973 72.5447 132.268 72.8399 132.629 72.8399H135.909C136.27 72.8399 136.565 72.5447 136.565 72.1839V69.2484H137.713V77.4236H136.565V74.4881C136.565 74.1273 136.27 73.8321 135.909 73.8321H132.629C132.268 73.8321 131.973 74.1273 131.973 74.4881V77.4236H130.825V69.2484H131.973Z" fill="currentColor"/>
+  </svg>
+</template>
+
+<!-- ═══════════════════════ SLIDE 1: HERO ═══════════════════════ -->
+<section class="slide" id="hero">
+  <div class="slide-glow">
+    <div class="glow-orb glow-primary glow-1"></div>
+    <div class="glow-orb glow-primary glow-2"></div>
+  </div>
+  <div class="slide-inner" style="text-align: center;">
+    <div class="fade-up" style="margin-bottom: 32px;">
+      <svg viewBox="51 40 113 38" fill="none" xmlns="http://www.w3.org/2000/svg" style="height: 40px; width: auto; color: var(--fg);">
+        <path d="M69.646 46.5759L58.8796 58.3508H70.4742V62.7377H55.1569C53.4104 62.7377 52 61.3192 52 59.5808C52 58.7936 52.2952 58.031 52.8282 57.4488L63.5945 45.6739H52V41.287H67.3173C69.0638 41.287 70.4742 42.7056 70.4742 44.4439C70.4742 45.2311 70.179 45.9937 69.646 46.5759Z" fill="currentColor"/>
+        <path d="M79.9122 45.6739H90.7769V41.287H79.0348C76.1485 41.287 73.8115 43.6239 73.8115 46.5103V57.5062C73.8115 60.3926 76.1485 62.7295 79.0348 62.7295H90.7769V58.3426H79.9122C79.0512 58.3426 78.5018 57.7686 78.5018 56.8339V54.2099H90.4243V49.7902H78.5018V47.1663C78.5018 46.2397 79.043 45.6575 79.9122 45.6575V45.6739Z" fill="currentColor"/>
+        <path d="M100.42 42.6154L109.251 54.3165V41.287H114.179V59.4496C114.179 61.27 112.703 62.7377 110.891 62.7377C109.858 62.7377 108.882 62.2539 108.267 61.4258L99.4278 49.7V62.7295H94.4341V44.6079C94.4341 42.763 95.9264 41.2706 97.7714 41.2706C98.821 41.2706 99.8049 41.7626 100.436 42.599L100.42 42.6154Z" fill="currentColor"/>
+        <path d="M155.834 43.8207C155.064 41.902 153.948 41 151.8 41C149.652 41 148.536 41.8938 147.766 43.8535L140.205 62.7459H146.093L151.472 47.5681C151.538 47.4041 151.636 47.2811 151.792 47.2811C151.923 47.2811 152.046 47.3467 152.112 47.5681L157.458 62.7459H163.345L155.818 43.8207H155.834Z" fill="currentColor"/>
+        <path d="M123.953 42.6154L132.785 54.3165V41.287H137.713V59.4496C137.713 61.27 136.237 62.7377 134.425 62.7377C133.391 62.7377 132.416 62.2539 131.801 61.4258L122.961 49.7V62.7295H117.968V44.6079C117.968 42.763 119.46 41.2706 121.305 41.2706C122.354 41.2706 123.338 41.7626 123.97 42.599L123.953 42.6154Z" fill="currentColor"/>
+        <path d="M78.7888 69.2484V72.1839C78.7888 72.5447 79.084 72.8399 79.4448 72.8399H82.7247C83.0855 72.8399 83.3807 72.5447 83.3807 72.1839V69.2484H84.5287V77.4236H83.3807V74.4881C83.3807 74.1273 83.0855 73.8321 82.7247 73.8321H79.4448C79.084 73.8321 78.7888 74.1273 78.7888 74.4881V77.4236H77.6408V69.2484H78.7888Z" fill="currentColor"/>
+        <path d="M90.5064 71.2081V72.7333H95.1311V73.8485H90.5064V75.3737C90.5064 75.9804 90.9246 76.4396 91.4986 76.4396H95.3279V77.44H91.2034C90.1374 77.44 89.3584 76.6446 89.3584 75.5704V71.0195C89.3584 69.9454 90.1374 69.15 91.2034 69.15H95.3279V70.1504H91.4986C90.9246 70.1504 90.5064 70.6014 90.5064 71.2163V71.2081Z" fill="currentColor"/>
+        <path d="M104.618 69.9618C104.438 69.4862 104.118 69.1418 103.446 69.1418C102.773 69.1418 102.454 69.4862 102.29 69.9618L99.4606 77.4318H100.756L103.282 70.585C103.339 70.4292 103.429 70.4128 103.454 70.4128C103.487 70.4128 103.577 70.421 103.626 70.585L106.168 77.4318H107.464L104.635 69.9618H104.618Z" fill="currentColor"/>
+        <path d="M112.662 69.2484V75.3572C112.662 75.964 113.08 76.415 113.654 76.415H117.377V77.4154H113.359C112.301 77.4154 111.514 76.62 111.514 75.5458V69.2402H112.662V69.2484Z" fill="currentColor"/>
+        <path d="M126.34 70.2488H123.486V77.4236H122.338V70.2488H119.493V69.2484H126.34V70.2488Z" fill="currentColor"/>
+        <path d="M131.973 69.2484V72.1839C131.973 72.5447 132.268 72.8399 132.629 72.8399H135.909C136.27 72.8399 136.565 72.5447 136.565 72.1839V69.2484H137.713V77.4236H136.565V74.4881C136.565 74.1273 136.27 73.8321 135.909 73.8321H132.629C132.268 73.8321 131.973 74.1273 131.973 74.4881V77.4236H130.825V69.2484H131.973Z" fill="currentColor"/>
+      </svg>
+    </div>
+    <h1 class="fade-up delay-1">Computer Vision<br>Technology Overview</h1>
+    <p class="subtitle fade-up delay-2" style="max-width: 580px; margin: 0 auto;">
+      How Zenna Health&rsquo;s on-device pose detection works and how it compares to Kemtai
+    </p>
+    <div class="stats-grid fade-up delay-3" style="max-width: 640px; margin: 44px auto 0;">
+      <div class="stat">
+        <div class="stat-value">30 fps</div>
+        <div class="stat-label">Real-time tracking</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">True 3D</div>
+        <div class="stat-label">World coordinates in metres</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">On-device</div>
+        <div class="stat-label">No cloud processing</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ SLIDE 2: PIPELINE ═══════════════════════ -->
+<section class="slide" id="pipeline">
+  <div class="slide-glow"><div class="glow-orb glow-primary glow-1"></div></div>
+  <div class="slide-brand"><svg viewBox="51 40 113 38" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:var(--fg)"><path d="M69.646 46.5759L58.8796 58.3508H70.4742V62.7377H55.1569C53.4104 62.7377 52 61.3192 52 59.5808C52 58.7936 52.2952 58.031 52.8282 57.4488L63.5945 45.6739H52V41.287H67.3173C69.0638 41.287 70.4742 42.7056 70.4742 44.4439C70.4742 45.2311 70.179 45.9937 69.646 46.5759Z" fill="currentColor"/><path d="M79.9122 45.6739H90.7769V41.287H79.0348C76.1485 41.287 73.8115 43.6239 73.8115 46.5103V57.5062C73.8115 60.3926 76.1485 62.7295 79.0348 62.7295H90.7769V58.3426H79.9122C79.0512 58.3426 78.5018 57.7686 78.5018 56.8339V54.2099H90.4243V49.7902H78.5018V47.1663C78.5018 46.2397 79.043 45.6575 79.9122 45.6575V45.6739Z" fill="currentColor"/><path d="M100.42 42.6154L109.251 54.3165V41.287H114.179V59.4496C114.179 61.27 112.703 62.7377 110.891 62.7377C109.858 62.7377 108.882 62.2539 108.267 61.4258L99.4278 49.7V62.7295H94.4341V44.6079C94.4341 42.763 95.9264 41.2706 97.7714 41.2706C98.821 41.2706 99.8049 41.7626 100.436 42.599L100.42 42.6154Z" fill="currentColor"/><path d="M155.834 43.8207C155.064 41.902 153.948 41 151.8 41C149.652 41 148.536 41.8938 147.766 43.8535L140.205 62.7459H146.093L151.472 47.5681C151.538 47.4041 151.636 47.2811 151.792 47.2811C151.923 47.2811 152.046 47.3467 152.112 47.5681L157.458 62.7459H163.345L155.818 43.8207H155.834Z" fill="currentColor"/><path d="M123.953 42.6154L132.785 54.3165V41.287H137.713V59.4496C137.713 61.27 136.237 62.7377 134.425 62.7377C133.391 62.7377 132.416 62.2539 131.801 61.4258L122.961 49.7V62.7295H117.968V44.6079C117.968 42.763 119.46 41.2706 121.305 41.2706C122.354 41.2706 123.338 41.7626 123.97 42.599L123.953 42.6154Z" fill="currentColor"/></svg></div>
+  <div class="slide-inner" style="text-align: center;">
+    <div class="label fade-up">How It Works</div>
+    <h2 class="fade-up delay-1">The Pose Detection Pipeline</h2>
+    <p class="subtitle fade-up delay-2" style="max-width: 560px; margin: 0 auto;">Six stages process every camera frame in under 14ms, entirely on-device.</p>
+
+    <div class="diagram fade-up delay-3">
+      <div class="diagram-box">
+        <div class="diagram-box-icon">&#128241;</div>
+        <div class="diagram-box-content">
+          <h4>Camera Capture</h4>
+          <span>iPhone front camera, 720p @ 30fps, portrait orientation</span>
+        </div>
+      </div>
+      <div class="diagram-connector"></div>
+      <div class="diagram-box core-box">
+        <div class="diagram-box-icon">&#129504;</div>
+        <div class="diagram-box-content">
+          <h4>Apple Vision Framework</h4>
+          <span>Dual 2D + 3D pose detection, Neural Engine accelerated</span>
+          <div class="diagram-tags">
+            <span class="diagram-tag">2D confidence scores</span>
+            <span class="diagram-tag">3D world coordinates</span>
+          </div>
+        </div>
+      </div>
+      <div class="diagram-connector"></div>
+      <div class="diagram-box">
+        <div class="diagram-box-icon">&#129460;</div>
+        <div class="diagram-box-content">
+          <h4>20-Point Skeleton</h4>
+          <span>16 native joints + 4 synthesised foot joints (heel, toe)</span>
+        </div>
+      </div>
+      <div class="diagram-connector"></div>
+      <div class="diagram-box">
+        <div class="diagram-box-icon">&#12336;&#65039;</div>
+        <div class="diagram-box-content">
+          <h4>Adaptive Smoothing</h4>
+          <span>One Euro filter &mdash; ~70% jitter reduction, preserves fast movement</span>
+        </div>
+      </div>
+      <div class="diagram-connector"></div>
+      <div class="diagram-box">
+        <div class="diagram-box-icon">&#128208;</div>
+        <div class="diagram-box-content">
+          <h4>3D Angle Computation</h4>
+          <span>9 clinically-relevant angles from world coordinates in metres</span>
+        </div>
+      </div>
+      <div class="diagram-connector"></div>
+      <div class="diagram-box">
+        <div class="diagram-box-icon">&#127947;</div>
+        <div class="diagram-box-content">
+          <h4>Exercise Engine</h4>
+          <span>Rep counting, form scoring, and corrective feedback</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ SLIDE 3: ANGLES ═══════════════════════ -->
+<section class="slide" id="angles">
+  <div class="slide-glow"><div class="glow-orb glow-green glow-2"></div></div>
+  <div class="slide-brand"><svg viewBox="51 40 113 38" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:var(--fg)"><path d="M69.646 46.5759L58.8796 58.3508H70.4742V62.7377H55.1569C53.4104 62.7377 52 61.3192 52 59.5808C52 58.7936 52.2952 58.031 52.8282 57.4488L63.5945 45.6739H52V41.287H67.3173C69.0638 41.287 70.4742 42.7056 70.4742 44.4439C70.4742 45.2311 70.179 45.9937 69.646 46.5759Z" fill="currentColor"/><path d="M79.9122 45.6739H90.7769V41.287H79.0348C76.1485 41.287 73.8115 43.6239 73.8115 46.5103V57.5062C73.8115 60.3926 76.1485 62.7295 79.0348 62.7295H90.7769V58.3426H79.9122C79.0512 58.3426 78.5018 57.7686 78.5018 56.8339V54.2099H90.4243V49.7902H78.5018V47.1663C78.5018 46.2397 79.043 45.6575 79.9122 45.6575V45.6739Z" fill="currentColor"/><path d="M100.42 42.6154L109.251 54.3165V41.287H114.179V59.4496C114.179 61.27 112.703 62.7377 110.891 62.7377C109.858 62.7377 108.882 62.2539 108.267 61.4258L99.4278 49.7V62.7295H94.4341V44.6079C94.4341 42.763 95.9264 41.2706 97.7714 41.2706C98.821 41.2706 99.8049 41.7626 100.436 42.599L100.42 42.6154Z" fill="currentColor"/><path d="M155.834 43.8207C155.064 41.902 153.948 41 151.8 41C149.652 41 148.536 41.8938 147.766 43.8535L140.205 62.7459H146.093L151.472 47.5681C151.538 47.4041 151.636 47.2811 151.792 47.2811C151.923 47.2811 152.046 47.3467 152.112 47.5681L157.458 62.7459H163.345L155.818 43.8207H155.834Z" fill="currentColor"/><path d="M123.953 42.6154L132.785 54.3165V41.287H137.713V59.4496C137.713 61.27 136.237 62.7377 134.425 62.7377C133.391 62.7377 132.416 62.2539 131.801 61.4258L122.961 49.7V62.7295H117.968V44.6079C117.968 42.763 119.46 41.2706 121.305 41.2706C122.354 41.2706 123.338 41.7626 123.97 42.599L123.953 42.6154Z" fill="currentColor"/></svg></div>
+  <div class="slide-inner">
+    <div style="text-align: center;">
+      <div class="label fade-up">Clinical Precision</div>
+      <h2 class="fade-up delay-1">Joint Angle Measurement</h2>
+      <p class="subtitle fade-up delay-2" style="max-width: 560px; margin: 0 auto;">Computed from 3D world coordinates in metres, not 2D projections.</p>
+    </div>
+
+    <div class="two-col fade-up delay-3">
+      <div style="display: flex; justify-content: center;">
+        <div class="skeleton-figure">
+          <svg viewBox="0 0 200 340" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+            <!-- Bones -->
+            <line x1="100" y1="15" x2="100" y2="50" stroke="var(--border)" stroke-width="3" stroke-linecap="round"/>
+            <line x1="55" y1="70" x2="145" y2="70" stroke="var(--border)" stroke-width="3" stroke-linecap="round"/>
+            <line x1="100" y1="50" x2="100" y2="70" stroke="var(--border)" stroke-width="3" stroke-linecap="round"/>
+            <line x1="100" y1="70" x2="100" y2="115" stroke="var(--border)" stroke-width="3" stroke-linecap="round"/>
+            <line x1="100" y1="115" x2="75" y2="175" stroke="var(--border)" stroke-width="3" stroke-linecap="round"/>
+            <line x1="100" y1="115" x2="125" y2="175" stroke="var(--border)" stroke-width="3" stroke-linecap="round"/>
+            <line x1="55" y1="70" x2="32" y2="125" stroke="var(--border)" stroke-width="3" stroke-linecap="round"/>
+            <line x1="32" y1="125" x2="18" y2="178" stroke="var(--border)" stroke-width="3" stroke-linecap="round"/>
+            <line x1="145" y1="70" x2="168" y2="125" stroke="var(--border)" stroke-width="3" stroke-linecap="round"/>
+            <line x1="168" y1="125" x2="182" y2="178" stroke="var(--border)" stroke-width="3" stroke-linecap="round"/>
+            <line x1="75" y1="175" x2="68" y2="248" stroke="var(--border)" stroke-width="3" stroke-linecap="round"/>
+            <line x1="68" y1="248" x2="62" y2="318" stroke="var(--border)" stroke-width="3" stroke-linecap="round"/>
+            <line x1="125" y1="175" x2="132" y2="248" stroke="var(--border)" stroke-width="3" stroke-linecap="round"/>
+            <line x1="132" y1="248" x2="138" y2="318" stroke="var(--border)" stroke-width="3" stroke-linecap="round"/>
+
+            <!-- Angle arcs (dashed) -->
+            <path d="M 80 160 A 18 18 0 0 0 62 172" stroke="var(--primary)" stroke-width="2" fill="none" stroke-dasharray="3 2"/>
+            <path d="M 68 232 A 16 16 0 0 1 56 248" stroke="var(--primary)" stroke-width="2" fill="none" stroke-dasharray="3 2"/>
+            <path d="M 55 86 A 16 16 0 0 1 38 80" stroke="var(--primary)" stroke-width="2" fill="none" stroke-dasharray="3 2"/>
+
+            <!-- Joints -->
+            <circle cx="100" cy="15" r="5" fill="var(--border)"/>
+            <circle cx="100" cy="50" r="5" fill="var(--border)"/>
+            <circle cx="55" cy="70" r="7" fill="var(--primary)" stroke="var(--primary-light)" stroke-width="3"/>
+            <circle cx="145" cy="70" r="5" fill="var(--border)"/>
+            <circle cx="32" cy="125" r="7" fill="var(--primary)" stroke="var(--primary-light)" stroke-width="3"/>
+            <circle cx="168" cy="125" r="5" fill="var(--border)"/>
+            <circle cx="18" cy="178" r="5" fill="var(--border)"/>
+            <circle cx="182" cy="178" r="5" fill="var(--border)"/>
+            <circle cx="75" cy="175" r="7" fill="var(--primary)" stroke="var(--primary-light)" stroke-width="3"/>
+            <circle cx="125" cy="175" r="5" fill="var(--border)"/>
+            <circle cx="68" cy="248" r="7" fill="var(--primary)" stroke="var(--primary-light)" stroke-width="3"/>
+            <circle cx="132" cy="248" r="5" fill="var(--border)"/>
+            <circle cx="62" cy="318" r="7" fill="var(--primary)" stroke="var(--primary-light)" stroke-width="3"/>
+            <circle cx="138" cy="318" r="5" fill="var(--border)"/>
+
+            <!-- Labels -->
+            <text x="38" y="158" font-size="9" fill="var(--primary-dark)" font-family="Averta,system-ui" font-weight="700">hip</text>
+            <text x="30" y="242" font-size="9" fill="var(--primary-dark)" font-family="Averta,system-ui" font-weight="700">knee</text>
+            <text x="10" y="76" font-size="9" fill="var(--primary-dark)" font-family="Averta,system-ui" font-weight="700">shoulder</text>
+          </svg>
+        </div>
+      </div>
+
+      <div>
+        <div class="angle-list">
+          <div class="angle-item"><div><div class="angle-item-name">knee_flexion</div><div class="angle-item-desc">Hip &rarr; Knee &rarr; Ankle</div></div></div>
+          <div class="angle-item"><div><div class="angle-item-name">hip_flexion</div><div class="angle-item-desc">Shoulder &rarr; Hip &rarr; Knee</div></div></div>
+          <div class="angle-item"><div><div class="angle-item-name">hip_abduction</div><div class="angle-item-desc">Opposite Hip &rarr; Hip &rarr; Knee</div></div></div>
+          <div class="angle-item"><div><div class="angle-item-name">ankle_dorsiflexion</div><div class="angle-item-desc">Knee &rarr; Ankle &rarr; FootIndex</div></div></div>
+          <div class="angle-item"><div><div class="angle-item-name">ankle_plantarflexion</div><div class="angle-item-desc">Knee &rarr; Ankle &rarr; Heel</div></div></div>
+          <div class="angle-item"><div><div class="angle-item-name">shoulder_flexion</div><div class="angle-item-desc">Hip &rarr; Shoulder &rarr; Elbow</div></div></div>
+          <div class="angle-item"><div><div class="angle-item-name">elbow_flexion</div><div class="angle-item-desc">Shoulder &rarr; Elbow &rarr; Wrist</div></div></div>
+          <div class="angle-item"><div><div class="angle-item-name">trunk_lean</div><div class="angle-item-desc">Shoulder mid &rarr; Hip mid &rarr; Vertical</div></div></div>
+        </div>
+        <div class="callout" style="margin-top: 12px;">
+          <strong>3D vector formula:</strong> angle = acos(dot(BA, BC) / |BA|&times;|BC|)
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ SLIDE 4: SCORING ═══════════════════════ -->
+<section class="slide" id="scoring">
+  <div class="slide-glow"><div class="glow-orb glow-primary glow-1"></div></div>
+  <div class="slide-brand"><svg viewBox="51 40 113 38" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:var(--fg)"><path d="M69.646 46.5759L58.8796 58.3508H70.4742V62.7377H55.1569C53.4104 62.7377 52 61.3192 52 59.5808C52 58.7936 52.2952 58.031 52.8282 57.4488L63.5945 45.6739H52V41.287H67.3173C69.0638 41.287 70.4742 42.7056 70.4742 44.4439C70.4742 45.2311 70.179 45.9937 69.646 46.5759Z" fill="currentColor"/><path d="M79.9122 45.6739H90.7769V41.287H79.0348C76.1485 41.287 73.8115 43.6239 73.8115 46.5103V57.5062C73.8115 60.3926 76.1485 62.7295 79.0348 62.7295H90.7769V58.3426H79.9122C79.0512 58.3426 78.5018 57.7686 78.5018 56.8339V54.2099H90.4243V49.7902H78.5018V47.1663C78.5018 46.2397 79.043 45.6575 79.9122 45.6575V45.6739Z" fill="currentColor"/><path d="M100.42 42.6154L109.251 54.3165V41.287H114.179V59.4496C114.179 61.27 112.703 62.7377 110.891 62.7377C109.858 62.7377 108.882 62.2539 108.267 61.4258L99.4278 49.7V62.7295H94.4341V44.6079C94.4341 42.763 95.9264 41.2706 97.7714 41.2706C98.821 41.2706 99.8049 41.7626 100.436 42.599L100.42 42.6154Z" fill="currentColor"/><path d="M155.834 43.8207C155.064 41.902 153.948 41 151.8 41C149.652 41 148.536 41.8938 147.766 43.8535L140.205 62.7459H146.093L151.472 47.5681C151.538 47.4041 151.636 47.2811 151.792 47.2811C151.923 47.2811 152.046 47.3467 152.112 47.5681L157.458 62.7459H163.345L155.818 43.8207H155.834Z" fill="currentColor"/><path d="M123.953 42.6154L132.785 54.3165V41.287H137.713V59.4496C137.713 61.27 136.237 62.7377 134.425 62.7377C133.391 62.7377 132.416 62.2539 131.801 61.4258L122.961 49.7V62.7295H117.968V44.6079C117.968 42.763 119.46 41.2706 121.305 41.2706C122.354 41.2706 123.338 41.7626 123.97 42.599L123.953 42.6154Z" fill="currentColor"/></svg></div>
+  <div class="slide-inner" style="text-align: center;">
+    <div class="label fade-up">Form Assessment</div>
+    <h2 class="fade-up delay-1">How Form Scoring Works</h2>
+    <p class="subtitle fade-up delay-2" style="max-width: 560px; margin: 0 auto;">Each joint is scored against the reference pose using a Gaussian decay model.</p>
+
+    <div class="gaussian-container fade-up delay-3">
+      <div class="gaussian-curve" id="gaussian-curve"></div>
+      <div class="gaussian-zone-labels">
+        <div class="gaussian-zone-label gz-red">Poor<br><small>20&deg;+ error</small></div>
+        <div class="gaussian-zone-label gz-yellow">Fair<br><small>10&ndash;20&deg;</small></div>
+        <div class="gaussian-zone-label gz-green">Good<br><small>0&ndash;10&deg;</small></div>
+        <div class="gaussian-zone-label gz-yellow">Fair<br><small>10&ndash;20&deg;</small></div>
+        <div class="gaussian-zone-label gz-red">Poor<br><small>20&deg;+</small></div>
+      </div>
+      <div class="gaussian-axis">
+        <span>&minus;30&deg;</span><span>&minus;15&deg;</span><span>0&deg;</span><span>+15&deg;</span><span>+30&deg;</span>
+      </div>
+    </div>
+
+    <div class="callout fade-up delay-4" style="max-width: 540px; margin: 20px auto 0; text-align: left;">
+      <strong>score = 100 &times; exp(&minus;error&sup2; / 2&sigma;&sup2;)</strong> &nbsp; &sigma; = 15&deg;<br>
+      Per-joint weights are configurable per exercise (e.g. knee 40%, hip 30%, trunk 30%)
+    </div>
+
+    <div class="card-grid card-grid-3 fade-up delay-5" style="max-width: 640px; margin: 24px auto 0;">
+      <div class="card" style="text-align: center; padding: 16px;">
+        <div style="width:12px;height:12px;border-radius:50%;background:oklch(0.65 0.2 153.6);margin:0 auto 8px;"></div>
+        <h3 style="font-size:0.85rem;">Green &gt; 80%</h3>
+        <p style="font-size:0.78rem;">Good form</p>
+      </div>
+      <div class="card" style="text-align: center; padding: 16px;">
+        <div style="width:12px;height:12px;border-radius:50%;background:oklch(0.7 0.18 70);margin:0 auto 8px;"></div>
+        <h3 style="font-size:0.85rem;">Yellow 50&ndash;80%</h3>
+        <p style="font-size:0.78rem;">Needs improvement</p>
+      </div>
+      <div class="card" style="text-align: center; padding: 16px;">
+        <div style="width:12px;height:12px;border-radius:50%;background:oklch(0.6 0.22 25);margin:0 auto 8px;"></div>
+        <h3 style="font-size:0.85rem;">Red &lt; 50%</h3>
+        <p style="font-size:0.78rem;">Corrective cue shown</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ SLIDE 5: REP TRACKING ═══════════════════════ -->
+<section class="slide" id="tracking">
+  <div class="slide-glow"><div class="glow-orb glow-primary glow-2"></div></div>
+  <div class="slide-brand"><svg viewBox="51 40 113 38" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:var(--fg)"><path d="M69.646 46.5759L58.8796 58.3508H70.4742V62.7377H55.1569C53.4104 62.7377 52 61.3192 52 59.5808C52 58.7936 52.2952 58.031 52.8282 57.4488L63.5945 45.6739H52V41.287H67.3173C69.0638 41.287 70.4742 42.7056 70.4742 44.4439C70.4742 45.2311 70.179 45.9937 69.646 46.5759Z" fill="currentColor"/><path d="M79.9122 45.6739H90.7769V41.287H79.0348C76.1485 41.287 73.8115 43.6239 73.8115 46.5103V57.5062C73.8115 60.3926 76.1485 62.7295 79.0348 62.7295H90.7769V58.3426H79.9122C79.0512 58.3426 78.5018 57.7686 78.5018 56.8339V54.2099H90.4243V49.7902H78.5018V47.1663C78.5018 46.2397 79.043 45.6575 79.9122 45.6575V45.6739Z" fill="currentColor"/><path d="M100.42 42.6154L109.251 54.3165V41.287H114.179V59.4496C114.179 61.27 112.703 62.7377 110.891 62.7377C109.858 62.7377 108.882 62.2539 108.267 61.4258L99.4278 49.7V62.7295H94.4341V44.6079C94.4341 42.763 95.9264 41.2706 97.7714 41.2706C98.821 41.2706 99.8049 41.7626 100.436 42.599L100.42 42.6154Z" fill="currentColor"/><path d="M155.834 43.8207C155.064 41.902 153.948 41 151.8 41C149.652 41 148.536 41.8938 147.766 43.8535L140.205 62.7459H146.093L151.472 47.5681C151.538 47.4041 151.636 47.2811 151.792 47.2811C151.923 47.2811 152.046 47.3467 152.112 47.5681L157.458 62.7459H163.345L155.818 43.8207H155.834Z" fill="currentColor"/><path d="M123.953 42.6154L132.785 54.3165V41.287H137.713V59.4496C137.713 61.27 136.237 62.7377 134.425 62.7377C133.391 62.7377 132.416 62.2539 131.801 61.4258L122.961 49.7V62.7295H117.968V44.6079C117.968 42.763 119.46 41.2706 121.305 41.2706C122.354 41.2706 123.338 41.7626 123.97 42.599L123.953 42.6154Z" fill="currentColor"/></svg></div>
+  <div class="slide-inner" style="text-align: center;">
+    <div class="label fade-up">Exercise Tracking</div>
+    <h2 class="fade-up delay-1">How Rep Counting Works</h2>
+    <p class="subtitle fade-up delay-2" style="max-width: 560px; margin: 0 auto;">A state machine tracks the primary angle through the movement cycle.</p>
+
+    <div class="state-machine fade-up delay-3">
+      <div class="state-box active-state">
+        <h4>Standing</h4>
+        <div class="state-range">150&ndash;180&deg;</div>
+      </div>
+      <div class="state-arrow">&rarr;</div>
+      <div class="state-box">
+        <h4>Descending</h4>
+        <div class="state-range">140&ndash;150&deg;</div>
+      </div>
+      <div class="state-arrow">&rarr;</div>
+      <div class="state-box">
+        <h4>Bottom</h4>
+        <div class="state-range">&lt; 140&deg;</div>
+      </div>
+      <div class="state-arrow">&rarr;</div>
+      <div class="state-result">&#10003; 1 Rep</div>
+    </div>
+
+    <div class="card-grid card-grid-4 fade-up delay-4" style="margin-top: 32px;">
+      <div class="card">
+        <h3>Hysteresis</h3>
+        <p>&plusmn;3&deg; deadband at thresholds prevents false state transitions from noise.</p>
+      </div>
+      <div class="card">
+        <h3>Duration Filter</h3>
+        <p>Minimum rep duration (0.4&ndash;1.0s) rejects jitter-induced false counts.</p>
+      </div>
+      <div class="card">
+        <h3>Corrective Feedback</h3>
+        <p>Rule-based cues like &ldquo;Bend your knees more&rdquo; with 3-second debouncing.</p>
+      </div>
+      <div class="card">
+        <h3>Ghost Overlay</h3>
+        <p>Reference skeleton at 50% opacity, matched to the patient&rsquo;s current position in the movement.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ SLIDE 6: COMPARISON ═══════════════════════ -->
+<section class="slide" id="compare">
+  <div class="slide-glow"><div class="glow-orb glow-primary glow-1"></div></div>
+  <div class="slide-brand"><svg viewBox="51 40 113 38" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:var(--fg)"><path d="M69.646 46.5759L58.8796 58.3508H70.4742V62.7377H55.1569C53.4104 62.7377 52 61.3192 52 59.5808C52 58.7936 52.2952 58.031 52.8282 57.4488L63.5945 45.6739H52V41.287H67.3173C69.0638 41.287 70.4742 42.7056 70.4742 44.4439C70.4742 45.2311 70.179 45.9937 69.646 46.5759Z" fill="currentColor"/><path d="M79.9122 45.6739H90.7769V41.287H79.0348C76.1485 41.287 73.8115 43.6239 73.8115 46.5103V57.5062C73.8115 60.3926 76.1485 62.7295 79.0348 62.7295H90.7769V58.3426H79.9122C79.0512 58.3426 78.5018 57.7686 78.5018 56.8339V54.2099H90.4243V49.7902H78.5018V47.1663C78.5018 46.2397 79.043 45.6575 79.9122 45.6575V45.6739Z" fill="currentColor"/><path d="M100.42 42.6154L109.251 54.3165V41.287H114.179V59.4496C114.179 61.27 112.703 62.7377 110.891 62.7377C109.858 62.7377 108.882 62.2539 108.267 61.4258L99.4278 49.7V62.7295H94.4341V44.6079C94.4341 42.763 95.9264 41.2706 97.7714 41.2706C98.821 41.2706 99.8049 41.7626 100.436 42.599L100.42 42.6154Z" fill="currentColor"/><path d="M155.834 43.8207C155.064 41.902 153.948 41 151.8 41C149.652 41 148.536 41.8938 147.766 43.8535L140.205 62.7459H146.093L151.472 47.5681C151.538 47.4041 151.636 47.2811 151.792 47.2811C151.923 47.2811 152.046 47.3467 152.112 47.5681L157.458 62.7459H163.345L155.818 43.8207H155.834Z" fill="currentColor"/><path d="M123.953 42.6154L132.785 54.3165V41.287H137.713V59.4496C137.713 61.27 136.237 62.7377 134.425 62.7377C133.391 62.7377 132.416 62.2539 131.801 61.4258L122.961 49.7V62.7295H117.968V44.6079C117.968 42.763 119.46 41.2706 121.305 41.2706C122.354 41.2706 123.338 41.7626 123.97 42.599L123.953 42.6154Z" fill="currentColor"/></svg></div>
+  <div class="slide-inner" style="text-align: center;">
+    <div class="label fade-up">Comparison</div>
+    <h2 class="fade-up delay-1">Kemtai vs Zenna</h2>
+    <p class="subtitle fade-up delay-2" style="max-width: 560px; margin: 0 auto;">A technical comparison of the two approaches.</p>
+
+    <div class="cmp-wrap fade-up delay-3">
+      <div class="cmp-table">
+        <div class="cmp-cell cmp-corner"></div>
+        <div class="cmp-cell cmp-head cmp-head-a">Kemtai</div>
+        <div class="cmp-cell cmp-head cmp-head-b">Zenna</div>
+
+        <div class="cmp-cell cmp-rowhead">Runtime</div>
+        <div class="cmp-cell cmp-a"><span class="partial">Browser / WebView</span></div>
+        <div class="cmp-cell cmp-b">Native iOS</div>
+
+        <div class="cmp-cell cmp-rowhead">Pose engine</div>
+        <div class="cmp-cell cmp-a"><span class="partial">TensorFlow.js (2D)</span></div>
+        <div class="cmp-cell cmp-b">Apple Vision (2D + 3D)</div>
+
+        <div class="cmp-cell cmp-rowhead">Hardware acceleration</div>
+        <div class="cmp-cell cmp-a"><span class="cross">&#10005;</span></div>
+        <div class="cmp-cell cmp-b"><span class="tick">&#10003;</span> Neural Engine</div>
+
+        <div class="cmp-cell cmp-rowhead">True 3D depth</div>
+        <div class="cmp-cell cmp-a"><span class="cross">&#10005;</span> <span class="partial">2D estimation</span></div>
+        <div class="cmp-cell cmp-b"><span class="tick">&#10003;</span> World coordinates</div>
+
+        <div class="cmp-cell cmp-rowhead">Processing location</div>
+        <div class="cmp-cell cmp-a"><span class="partial">Cloud round-trip</span></div>
+        <div class="cmp-cell cmp-b">100% on-device</div>
+
+        <div class="cmp-cell cmp-rowhead">Latency</div>
+        <div class="cmp-cell cmp-a"><span class="partial">~200&ndash;500ms</span></div>
+        <div class="cmp-cell cmp-b">&lt; 14ms</div>
+
+        <div class="cmp-cell cmp-rowhead">Works offline</div>
+        <div class="cmp-cell cmp-a"><span class="cross">&#10005;</span></div>
+        <div class="cmp-cell cmp-b"><span class="tick">&#10003;</span></div>
+
+        <div class="cmp-cell cmp-rowhead">Data ownership</div>
+        <div class="cmp-cell cmp-a"><span class="partial">Vendor-hosted</span></div>
+        <div class="cmp-cell cmp-b">Zenna Health</div>
+
+        <div class="cmp-cell cmp-rowhead">ROM tracking</div>
+        <div class="cmp-cell cmp-a"><span class="partial">Separate mode</span></div>
+        <div class="cmp-cell cmp-b">Built-in per exercise</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ SLIDE 7: MIGRATION STATUS ═══════════════════════ -->
+<section class="slide" id="migration">
+  <div class="slide-glow"><div class="glow-orb glow-green glow-2"></div></div>
+  <div class="slide-brand"><svg viewBox="51 40 113 38" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:var(--fg)"><path d="M69.646 46.5759L58.8796 58.3508H70.4742V62.7377H55.1569C53.4104 62.7377 52 61.3192 52 59.5808C52 58.7936 52.2952 58.031 52.8282 57.4488L63.5945 45.6739H52V41.287H67.3173C69.0638 41.287 70.4742 42.7056 70.4742 44.4439C70.4742 45.2311 70.179 45.9937 69.646 46.5759Z" fill="currentColor"/><path d="M79.9122 45.6739H90.7769V41.287H79.0348C76.1485 41.287 73.8115 43.6239 73.8115 46.5103V57.5062C73.8115 60.3926 76.1485 62.7295 79.0348 62.7295H90.7769V58.3426H79.9122C79.0512 58.3426 78.5018 57.7686 78.5018 56.8339V54.2099H90.4243V49.7902H78.5018V47.1663C78.5018 46.2397 79.043 45.6575 79.9122 45.6575V45.6739Z" fill="currentColor"/><path d="M100.42 42.6154L109.251 54.3165V41.287H114.179V59.4496C114.179 61.27 112.703 62.7377 110.891 62.7377C109.858 62.7377 108.882 62.2539 108.267 61.4258L99.4278 49.7V62.7295H94.4341V44.6079C94.4341 42.763 95.9264 41.2706 97.7714 41.2706C98.821 41.2706 99.8049 41.7626 100.436 42.599L100.42 42.6154Z" fill="currentColor"/><path d="M155.834 43.8207C155.064 41.902 153.948 41 151.8 41C149.652 41 148.536 41.8938 147.766 43.8535L140.205 62.7459H146.093L151.472 47.5681C151.538 47.4041 151.636 47.2811 151.792 47.2811C151.923 47.2811 152.046 47.3467 152.112 47.5681L157.458 62.7459H163.345L155.818 43.8207H155.834Z" fill="currentColor"/><path d="M123.953 42.6154L132.785 54.3165V41.287H137.713V59.4496C137.713 61.27 136.237 62.7377 134.425 62.7377C133.391 62.7377 132.416 62.2539 131.801 61.4258L122.961 49.7V62.7295H117.968V44.6079C117.968 42.763 119.46 41.2706 121.305 41.2706C122.354 41.2706 123.338 41.7626 123.97 42.599L123.953 42.6154Z" fill="currentColor"/></svg></div>
+  <div class="slide-inner" style="text-align: center;">
+    <div class="label fade-up">Migration Status</div>
+    <h2 class="fade-up delay-1">What We&rsquo;ve Migrated</h2>
+    <p class="subtitle fade-up delay-2" style="max-width: 560px; margin: 0 auto;">Current state of the transition from Kemtai to Zenna Health&rsquo;s own infrastructure.</p>
+
+    <div class="proof-grid fade-up delay-3" style="max-width: 740px; margin: 28px auto 0;">
+      <div class="proof-row-label">Exercise Library</div>
+      <div class="proof-row">
+        <div class="proof-cell before"><div class="proof-tag tag-before">Kemtai</div><h4>1,506 exercises on Kemtai CDN</h4><p>Hosted and controlled by Kemtai</p></div>
+        <div class="proof-cell after"><div class="proof-tag tag-after">Zenna</div><h4>Seeded in Zenna Health&rsquo;s Supabase database</h4><p>Full metadata, categories, equipment</p></div>
+      </div>
+
+      <div class="proof-row-label">Exercise Videos</div>
+      <div class="proof-row">
+        <div class="proof-cell before"><div class="proof-tag tag-before">Kemtai</div><h4>Kemtai CloudFront URLs</h4><p>External CDN dependency</p></div>
+        <div class="proof-cell after"><div class="proof-tag tag-after">Zenna</div><h4>Vercel Blob storage</h4><p>MP4 + WebM formats, Zenna Health infrastructure</p></div>
+      </div>
+
+      <div class="proof-row-label">Patient Data &amp; Protocols</div>
+      <div class="proof-row">
+        <div class="proof-cell before"><div class="proof-tag tag-before">Kemtai</div><h4>Kemtai REST API</h4><p>Patient management via their platform</p></div>
+        <div class="proof-cell after"><div class="proof-tag tag-after">Zenna</div><h4>Zenna Health database with row-level security</h4><p>patients, protocols, pathways tables</p></div>
+      </div>
+
+      <div class="proof-row-label">Database Tables</div>
+      <div class="proof-row">
+        <div class="proof-cell before"><div class="proof-tag tag-before">Kemtai</div><h4>kemtai_staff_links, kemtai_patient_profiles</h4><p>Bridge tables to their system</p></div>
+        <div class="proof-cell after"><div class="proof-tag tag-after">Zenna</div><h4>Dropped &mdash; 27 March 2026</h4><p>Replaced by native staff_profiles, patients</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ SLIDE 8: COVERAGE ═══════════════════════ -->
+<section class="slide" id="coverage">
+  <div class="slide-glow"><div class="glow-orb glow-primary glow-1"></div></div>
+  <div class="slide-brand"><svg viewBox="51 40 113 38" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:var(--fg)"><path d="M69.646 46.5759L58.8796 58.3508H70.4742V62.7377H55.1569C53.4104 62.7377 52 61.3192 52 59.5808C52 58.7936 52.2952 58.031 52.8282 57.4488L63.5945 45.6739H52V41.287H67.3173C69.0638 41.287 70.4742 42.7056 70.4742 44.4439C70.4742 45.2311 70.179 45.9937 69.646 46.5759Z" fill="currentColor"/><path d="M79.9122 45.6739H90.7769V41.287H79.0348C76.1485 41.287 73.8115 43.6239 73.8115 46.5103V57.5062C73.8115 60.3926 76.1485 62.7295 79.0348 62.7295H90.7769V58.3426H79.9122C79.0512 58.3426 78.5018 57.7686 78.5018 56.8339V54.2099H90.4243V49.7902H78.5018V47.1663C78.5018 46.2397 79.043 45.6575 79.9122 45.6575V45.6739Z" fill="currentColor"/><path d="M100.42 42.6154L109.251 54.3165V41.287H114.179V59.4496C114.179 61.27 112.703 62.7377 110.891 62.7377C109.858 62.7377 108.882 62.2539 108.267 61.4258L99.4278 49.7V62.7295H94.4341V44.6079C94.4341 42.763 95.9264 41.2706 97.7714 41.2706C98.821 41.2706 99.8049 41.7626 100.436 42.599L100.42 42.6154Z" fill="currentColor"/><path d="M155.834 43.8207C155.064 41.902 153.948 41 151.8 41C149.652 41 148.536 41.8938 147.766 43.8535L140.205 62.7459H146.093L151.472 47.5681C151.538 47.4041 151.636 47.2811 151.792 47.2811C151.923 47.2811 152.046 47.3467 152.112 47.5681L157.458 62.7459H163.345L155.818 43.8207H155.834Z" fill="currentColor"/><path d="M123.953 42.6154L132.785 54.3165V41.287H137.713V59.4496C137.713 61.27 136.237 62.7377 134.425 62.7377C133.391 62.7377 132.416 62.2539 131.801 61.4258L122.961 49.7V62.7295H117.968V44.6079C117.968 42.763 119.46 41.2706 121.305 41.2706C122.354 41.2706 123.338 41.7626 123.97 42.599L123.953 42.6154Z" fill="currentColor"/></svg></div>
+  <div class="slide-inner" style="text-align: center;">
+    <div class="label fade-up">Current Coverage</div>
+    <h2 class="fade-up delay-1">Tracked Exercises &amp; Expansion</h2>
+    <p class="subtitle fade-up delay-2" style="max-width: 560px; margin: 0 auto;">The engine is data-driven &mdash; adding new exercises requires only a JSON configuration.</p>
+
+    <div class="card-grid card-grid-3 fade-up delay-3">
+      <div class="card" style="text-align: center; border-top: 3px solid var(--primary);">
+        <div style="font-size: 2.2rem; font-weight: 700; color: var(--fg); margin-bottom: 6px;">6</div>
+        <h3>Tracked Today</h3>
+        <p>Camera-based form scoring, rep counting, corrective feedback. ACL rehab focus.</p>
+      </div>
+      <div class="card" style="text-align: center; border-top: 3px solid var(--primary);">
+        <div style="font-size: 2.2rem; font-weight: 700; color: var(--fg); margin-bottom: 6px;">1,506</div>
+        <h3>In Library</h3>
+        <p>Full exercise library seeded with videos on Zenna Health Blob storage. Configs are JSON.</p>
+      </div>
+      <div class="card" style="text-align: center; border-top: 3px solid var(--primary);">
+        <div style="font-size: 2.2rem; font-weight: 700; color: var(--fg); margin-bottom: 6px;">0</div>
+        <h3>Code Changes</h3>
+        <p>Record reference video &rarr; run pose pipeline &rarr; add JSON config. Engine handles the rest.</p>
+      </div>
+    </div>
+
+    <div class="stats-grid fade-up delay-4" style="max-width: 600px; margin: 40px auto 0;">
+      <div class="stat">
+        <div class="stat-value">~2,000</div>
+        <div class="stat-label">Lines of core CV code</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">&lt; 14ms</div>
+        <div class="stat-label">Per-frame processing</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">iOS 17+</div>
+        <div class="stat-label">Minimum requirement</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ SLIDE 9: CLOSING ═══════════════════════ -->
+<section class="slide closing-slide" id="closing">
+  <div class="closing-glow"></div>
+  <div class="slide-inner" style="text-align: center; position: relative; z-index: 1;">
+    <div class="fade-up" style="margin-bottom: 28px; opacity: 0.3;">
+      <svg viewBox="51 40 113 38" fill="none" xmlns="http://www.w3.org/2000/svg" style="height: 32px; width: auto; color: var(--bg);">
+        <path d="M69.646 46.5759L58.8796 58.3508H70.4742V62.7377H55.1569C53.4104 62.7377 52 61.3192 52 59.5808C52 58.7936 52.2952 58.031 52.8282 57.4488L63.5945 45.6739H52V41.287H67.3173C69.0638 41.287 70.4742 42.7056 70.4742 44.4439C70.4742 45.2311 70.179 45.9937 69.646 46.5759Z" fill="currentColor"/>
+        <path d="M79.9122 45.6739H90.7769V41.287H79.0348C76.1485 41.287 73.8115 43.6239 73.8115 46.5103V57.5062C73.8115 60.3926 76.1485 62.7295 79.0348 62.7295H90.7769V58.3426H79.9122C79.0512 58.3426 78.5018 57.7686 78.5018 56.8339V54.2099H90.4243V49.7902H78.5018V47.1663C78.5018 46.2397 79.043 45.6575 79.9122 45.6575V45.6739Z" fill="currentColor"/>
+        <path d="M100.42 42.6154L109.251 54.3165V41.287H114.179V59.4496C114.179 61.27 112.703 62.7377 110.891 62.7377C109.858 62.7377 108.882 62.2539 108.267 61.4258L99.4278 49.7V62.7295H94.4341V44.6079C94.4341 42.763 95.9264 41.2706 97.7714 41.2706C98.821 41.2706 99.8049 41.7626 100.436 42.599L100.42 42.6154Z" fill="currentColor"/>
+        <path d="M155.834 43.8207C155.064 41.902 153.948 41 151.8 41C149.652 41 148.536 41.8938 147.766 43.8535L140.205 62.7459H146.093L151.472 47.5681C151.538 47.4041 151.636 47.2811 151.792 47.2811C151.923 47.2811 152.046 47.3467 152.112 47.5681L157.458 62.7459H163.345L155.818 43.8207H155.834Z" fill="currentColor"/>
+        <path d="M123.953 42.6154L132.785 54.3165V41.287H137.713V59.4496C137.713 61.27 136.237 62.7377 134.425 62.7377C133.391 62.7377 132.416 62.2539 131.801 61.4258L122.961 49.7V62.7295H117.968V44.6079C117.968 42.763 119.46 41.2706 121.305 41.2706C122.354 41.2706 123.338 41.7626 123.97 42.599L123.953 42.6154Z" fill="currentColor"/>
+      </svg>
+    </div>
+    <div class="label fade-up delay-1">Summary</div>
+    <h2 class="fade-up delay-2" style="max-width: 640px; margin: 0 auto;">
+      On-device 3D pose detection,<br>
+      <span style="color: var(--primary);">built and owned by Zenna Health.</span>
+    </h2>
+    <p class="subtitle fade-up delay-3" style="max-width: 500px; margin: 16px auto 0;">
+      Native iOS &bull; Apple Vision Framework &bull; True 3D angles &bull; 1,506 exercises migrated &bull; Data-driven expansion
+    </p>
+  </div>
+</section>
+
+<!-- ─── Scripts ─── -->
+<script>
+/* ─── Fade-up on scroll ─── */
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) entry.target.classList.add('visible');
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+/* ─── Nav dot sync ─── */
+const navObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+      const link = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('.slide').forEach(s => navObserver.observe(s));
+
+/* ─── Keyboard navigation ─── */
+const slides = [...document.querySelectorAll('.slide')];
+document.addEventListener('keydown', (e) => {
+  if (['ArrowDown', 'ArrowRight', 'PageDown', ' '].includes(e.key)) {
+    e.preventDefault();
+    const current = slides.findIndex(s => {
+      const r = s.getBoundingClientRect();
+      return r.top >= -10 && r.top < window.innerHeight / 2;
+    });
+    const next = Math.min(current + 1, slides.length - 1);
+    if (current !== next || current === -1) slides[next === -1 ? 1 : next].scrollIntoView({ behavior: 'smooth' });
+  }
+  if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(e.key)) {
+    e.preventDefault();
+    const current = slides.findIndex(s => {
+      const r = s.getBoundingClientRect();
+      return r.top >= -10 && r.top < window.innerHeight / 2;
+    });
+    const prev = Math.max((current === -1 ? slides.length : current) - 1, 0);
+    slides[prev].scrollIntoView({ behavior: 'smooth' });
+  }
+});
+
+/* ─── Generate Gaussian curve bars ─── */
+(function() {
+  const container = document.getElementById('gaussian-curve');
+  if (!container) return;
+  const sigma = 15, numBars = 61, half = Math.floor(numBars / 2);
+  for (let i = 0; i < numBars; i++) {
+    const x = (i - half);
+    const score = 100 * Math.exp(-(x * x) / (2 * sigma * sigma / 4));
+    const bar = document.createElement('div');
+    bar.className = 'gaussian-bar';
+    let color;
+    if (score >= 80) color = 'oklch(0.65 0.2 153.6)';
+    else if (score >= 30) color = 'oklch(0.7 0.18 70)';
+    else color = 'oklch(0.6 0.22 25)';
+    bar.style.height = Math.max(score, 2) + '%';
+    bar.style.background = color;
+    container.appendChild(bar);
+  }
+})();
+</script>
+
+</body>
+</html>
